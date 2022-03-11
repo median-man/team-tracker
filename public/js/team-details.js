@@ -112,3 +112,14 @@ async function handleConfirmDeleteClick() {
 }
 
 confirmDeleteBtn.addEventListener("click", handleConfirmDeleteClick);
+
+// format urls as links in elements with the "linkify" class
+document.addEventListener("DOMContentLoaded", () => {
+  const elements = document.querySelectorAll(".linkify");
+  for (const el of elements) {
+    el.innerHTML = el.innerHTML.replace(
+      /(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/g,
+      (url) => `<a href="${url}" target="_blank">${url}</a>`
+    );
+  }
+});
