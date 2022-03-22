@@ -1,44 +1,24 @@
 {
-  "name": "team-tracker",
+  "name": "mern-gql-starter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server/server.js",
   "engines": {
-    "node": "16.x"
+    "node": "16.x",
+    "npm": "7.x"
   },
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
-    "fix": "eslint . --fix && prettier --write .",
-    "watch": "nodemon server.js",
-    "seed": "node seed"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/median-man/team-tracker.git"
+    "start": "node server/server.js",
+    "develop": "concurrently -c magenta,cyan \"npm:server\" \"npm:react\"",
+    "react": "cd client && npm start",
+    "server": "cd server && npm run watch",
+    "install": "cd server && npm i && cd ../client && npm i",
+    "build": "cd client && npm run build"
   },
   "keywords": [],
-  "author": "John Desrosiers <john.desro@gmail.com> (https://github.com/median-man)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/median-man/team-tracker/issues"
-  },
-  "homepage": "https://github.com/median-man/team-tracker#readme",
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "eslint": "^8.8.0",
-    "eslint-config-prettier": "^8.3.0",
-    "nodemon": "^2.0.15",
-    "prettier": "^2.5.1"
-  },
-  "dependencies": {
-    "bcrypt": "^5.0.1",
-    "connect-session-sequelize": "^7.1.2",
-    "dotenv": "^16.0.0",
-    "express": "^4.17.2",
-    "express-handlebars": "^6.0.2",
-    "express-session": "^1.17.2",
-    "mysql2": "^2.3.3",
-    "sequelize": "^6.16.1"
+    "concurrently": "^6.4.0"
   }
 }
