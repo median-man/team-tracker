@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const userSchema = new Schema({
   username: {
@@ -12,17 +13,29 @@ const userSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    match: [/.+@.+\..+/, "Must match an email address!"],
+    validate: {
+      validator: (v) => validator.isEmail(v),
+    },
   },
   password: {
     type: String,
     required: true,
-    minlength: 5,
+    maxlength: 24,
+    validate: {
+      validator: (v) => validator.isStrongPassword(v, { minLength: 8 }),
+    },
   },
   lastLogin: {
     type: Date,
     default: Date.now,
   },
+});
+
+// Teams owned by the user
+userSchema.virtual("teams", {
+  ref: "Team",
+  localField: "_id",
+  foreignField: "user",
 });
 
 userSchema.pre("save", async function (next) {
