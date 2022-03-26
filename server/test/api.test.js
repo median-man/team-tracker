@@ -9,6 +9,10 @@ beforeAll(async () => {
   ({ app, httpServer } = await startServer({ port: 0 }));
 });
 
+afterEach(async () => {
+  await db.dropDatabase();
+});
+
 afterAll(() => {
   db.close();
   httpServer.close();
@@ -21,8 +25,8 @@ const gqlRequest = ({ query, variables }) => {
 };
 
 const expectNoGqlErrors = (response) => {
-  if (response.status === 400) {
-    const { errors } = response.body;
+  const { errors } = response.body;
+  if (errors) {
     throw new Error(
       `GraphQL Errors:\n${errors
         .map((e) => `    ${e.extensions?.code}: ${e.message}`)
@@ -39,11 +43,7 @@ it("apollo-server health check", async () => {
   expect(response.body).toEqual({ data: { __typename: "Query" } });
 });
 
-describe("create user", () => {
-  afterEach(async () => {
-    await db.dropDatabase();
-  });
-
+describe("create user mutation", () => {
   it("should throw UserInputError given a user", async () => {
     const query = `mutation createUser($userInput: UserInput!) {
       createUser(userInput: $userInput) {
@@ -74,7 +74,7 @@ describe("create user", () => {
     });
   });
 
-  it("should create a new user", async () => {
+  it("should create a new user and token", async () => {
     const query = `mutation createUser($userInput: UserInput!) {
       createUser(userInput: $userInput) {
         user {
@@ -82,6 +82,7 @@ describe("create user", () => {
           email
           username
         }
+        token
       }
     }`;
     const userInput = {
@@ -99,6 +100,57 @@ describe("create user", () => {
           email: userInput.email,
           username: userInput.username,
         },
+        token: expect.any(String),
+      })
+    );
+  });
+});
+
+describe("login mutation", () => {
+  const userInput = {
+    username: "testuser",
+    password: "Password12#",
+    email: "test@email.com",
+  };
+  beforeEach(async () => {
+    const query = `mutation createUser($userInput: UserInput!) {
+      createUser(userInput: $userInput) {
+        user {
+          _id
+          email
+          username
+        }
+        token
+      }
+    }`;
+    const response = await gqlRequest({ query, variables: { userInput } });
+    expectNoGqlErrors(response);
+  });
+
+  it("should return user and token", async () => {
+    const query = `mutation login($email: String!, $password: String!) {
+      login(email: $email, password: $password) {
+        user {
+          _id
+          email
+          username
+        }
+        token
+      }
+    }`;
+    const variables = { email: userInput.email, password: userInput.password };
+    const response = await gqlRequest({ query, variables });
+    expectNoGqlErrors(response);
+    const { data } = response.body;
+
+    expect(data.login).toEqual(
+      expect.objectContaining({
+        user: {
+          _id: expect.any(String),
+          email: userInput.email,
+          username: userInput.username,
+        },
+        token: expect.any(String),
       })
     );
   });

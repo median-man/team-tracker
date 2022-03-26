@@ -51,7 +51,9 @@ const resolvers = {
       }
       const token = await signToken(user);
       user.lastLogin = Date.now();
-      await user.save();
+      // skip validation because the only change is to lastLogin and hashed
+      // password will fail password validation
+      await user.save({ validateBeforeSave: false });
       return { token, user };
     },
   },
