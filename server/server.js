@@ -1,38 +1,20 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".env") });
+const http = require("http");
 const express = require("express");
 const { ApolloServer } = require("apollo-server-express");
 
 const { typeDefs, resolvers } = require("./schemas");
 const db = require("./config/connection");
 const { authMiddleware } = require("./util/auth");
+const { ApolloServerPluginDrainHttpServer } = require("apollo-server-core");
 
-const PORT = process.env.PORT || 3001;
-
-startServer(typeDefs, resolvers);
-
-async function startServer(typeDefs, resolvers) {
+async function startServer({ port }) {
   try {
     // Wait for db connection
     await new Promise((resolve) => db.once("open", resolve));
 
-    // create apollo server
-    const server = new ApolloServer({
-      typeDefs,
-      resolvers,
-      context: authMiddleware,
-    });
-    await server.start();
-
     // create express app
     const app = express();
-    server.applyMiddleware({
-      app,
-      path: "/graphql",
-    });
-
-    app.use(express.urlencoded({ extended: false }));
-    app.use(express.json());
 
     if (process.env.NODE_ENV === "production") {
       // Handle requests for client assets
@@ -45,11 +27,32 @@ async function startServer(typeDefs, resolvers) {
       });
     }
 
+    const httpServer = http.createServer(app);
+
+    // create apollo server
+    const server = new ApolloServer({
+      typeDefs,
+      resolvers,
+      // context: authMiddleware,
+      plugins: [ApolloServerPluginDrainHttpServer({ httpServer: httpServer })],
+    });
+    await server.start();
+
+    server.applyMiddleware({
+      app,
+      path: "/graphql"
+    });
+
     // start listening for requests
-    await new Promise((resolve) => app.listen({ port: PORT }, resolve));
-    console.log(
-      `🚀 Apollo Server ready at http://localhost:${PORT}${server.graphqlPath}`
-    );
+    httpServer.listen({ port }, () => {
+      console.log(
+        `🚀 Apollo Server ready at http://localhost:${
+          httpServer.address().port
+        }${server.graphqlPath}`
+      );
+    });
+
+    return { app, httpServer };
   } catch (error) {
     console.log(error);
     console.log(
@@ -59,3 +62,5 @@ async function startServer(typeDefs, resolvers) {
     process.exit(1);
   }
 }
+
+module.exports = { startServer };
