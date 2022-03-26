@@ -4,9 +4,10 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "watch": "nodemon",
-    "seed": "node seeders/seed.js"
+    "start": "node startup.js",
+    "watch": "nodemon startup.js",
+    "seed": "node seeders/seed.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,8 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.3"
+    "jest": "^27.5.1",
+    "nodemon": "^2.0.3",
+    "supertest": "^6.2.2"
   }
 }
