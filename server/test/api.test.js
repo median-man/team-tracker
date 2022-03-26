@@ -20,6 +20,17 @@ const gqlRequest = ({ query, variables }) => {
   return request(url).post("/graphql").send({ query, variables });
 };
 
+const expectNoGqlErrors = (response) => {
+  if (response.status === 400) {
+    const { errors } = response.body;
+    throw new Error(
+      `GraphQL Errors:\n${errors
+        .map((e) => `    ${e.extensions?.code}: ${e.message}`)
+        .join("\n")}`
+    );
+  }
+};
+
 it("apollo-server health check", async () => {
   const url = `http://localhost:${httpServer.address().port}`;
   const response = await request(url).get("/graphql").query({
@@ -32,6 +43,7 @@ describe("create user", () => {
   afterEach(async () => {
     await db.dropDatabase();
   });
+
   it("should throw UserInputError given a user", async () => {
     const query = `mutation createUser($userInput: UserInput!) {
       createUser(userInput: $userInput) {
@@ -78,15 +90,7 @@ describe("create user", () => {
       email: "test@email.com",
     };
     const response = await gqlRequest({ query, variables: { userInput } });
-
-    if (response.status === 400) {
-      const { errors } = response.body;
-      throw new Error(
-        `GraphQL Errors:\n${errors
-          .map((e) => `    ${e.extensions?.code}: ${e.message}`)
-          .join("\n")}`
-      );
-    }
+    expectNoGqlErrors(response);
     const { data } = response.body;
     expect(data.createUser).toEqual(
       expect.objectContaining({
