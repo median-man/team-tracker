@@ -19,12 +19,19 @@ const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (parent, args) => {
+    createUser: async (parent, { userInput }) => {
       try {
-        const user = await User.create({ ...args });
+        const user = await User.create({ ...userInput });
         const token = await signToken(user);
         return { user, token };
       } catch (error) {
+        if (error.name === "ValidationError") {
+          const validationErrors = {};
+          for (const field in error.errors) {
+            validationErrors[field] = error.errors[field].message;
+          }
+          throw new UserInputError("Invalid user value", { validationErrors });
+        }
         if (error.name === "MongoError" && error.code === 11000) {
           const [[key, value]] = Object.entries(error.keyValue);
           throw new UserInputError(`${key} "${value}" already exists.`);

@@ -15,6 +15,7 @@ const userSchema = new Schema({
     unique: true,
     validate: {
       validator: (v) => validator.isEmail(v),
+      message: ({ value }) => `'${value}' is not a valid email.`,
     },
   },
   password: {
@@ -23,6 +24,8 @@ const userSchema = new Schema({
     maxlength: 24,
     validate: {
       validator: (v) => validator.isStrongPassword(v, { minLength: 8 }),
+      message:
+        "Invalid password. Must contain uppercase and lowercase letters, numbers, and special characters.",
     },
   },
   lastLogin: {
