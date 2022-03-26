@@ -56,7 +56,7 @@ const teamSchema = new Schema(
 );
 
 // Notes about this team
-userSchema.virtual("notes", {
+teamSchema.virtual("notes", {
   ref: "Note",
   localField: "_id",
   foreignField: "team",
