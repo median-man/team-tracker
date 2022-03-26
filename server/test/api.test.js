@@ -3,6 +3,7 @@ require("dotenv").config({ path: path.join(__dirname, "../.env.test.local") });
 const { startServer } = require("../server");
 const db = require("../config/connection");
 const request = require("supertest");
+const jwt = require("jsonwebtoken");
 
 let app, httpServer;
 beforeAll(async () => {
@@ -153,5 +154,28 @@ describe("login mutation", () => {
         token: expect.any(String),
       })
     );
+  });
+
+  it("auth token payload should contain the user id, username, and email", async () => {
+    const query = `mutation login($email: String!, $password: String!) {
+      login(email: $email, password: $password) {
+        user {
+          _id
+          email
+          username
+        }
+        token
+      }
+    }`;
+    const variables = { email: userInput.email, password: userInput.password };
+    const response = await gqlRequest({ query, variables });
+    expectNoGqlErrors(response);
+    const { user, token } = response.body.data.login;
+    const { data } = jwt.decode(token);
+    expect(data).toEqual({
+      _id: user._id,
+      email: user.email,
+      username: user.username,
+    });
   });
 });
