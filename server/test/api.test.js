@@ -61,4 +61,46 @@ describe("create user", () => {
       },
     });
   });
+  
+  it("should create a new user", async () => {
+    const url = `http://localhost:${httpServer.address().port}`;
+    const response = await request(url)
+      .post("/graphql")
+      .send({
+        query: `mutation createUser($userInput: UserInput!) {
+          createUser(userInput: $userInput) {
+            user {
+              _id
+              email
+              username
+            }
+          }
+        }`,
+        variables: {
+          userInput: {
+            username: "testuser",
+            password: "Password12#",
+            email: "test@email.com",
+          },
+        },
+      });
+    if (response.status === 400) {
+      const { errors } = response.body;
+      throw new Error(
+        `GraphQL Errors:\n${errors
+          .map((e) => `    ${e.extensions?.code}: ${e.message}`)
+          .join("\n")}`
+      );
+    }
+    const { data } = response.body;
+    expect(data.createUser).toEqual(
+      expect.objectContaining({
+        user: {
+          _id: expect.any(String),
+          email: "test@email.com",
+          username: "testuser",
+        },
+      })
+    );
+  });
 });
