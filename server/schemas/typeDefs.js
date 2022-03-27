@@ -6,18 +6,26 @@ const typeDefs = gql`
 
   type Query {
     "Find the logged in user."
-    me: User
+    me: User!
   }
 
   type Mutation {
     createUser(userInput: UserInput!): Auth
     login(email: String!, password: String!): Auth
+    createTeam(teamInput: TeamInput!): Team
+    addTeamMember(teamId: ID!, memberName: String!): Team
+    removeTeamMember(teamId: ID!, memberName: String!): Team
   }
 
   input UserInput {
     email: String
     password: String
     username: String
+  }
+
+  input TeamInput {
+    name: String
+    members: [String]
   }
 
   type Auth {
@@ -30,6 +38,22 @@ const typeDefs = gql`
     username: String!
     email: String!
     lastLogin: Date!
+    teams: [Team]
+  }
+
+  type Team {
+    _id: ID!
+    name: String!
+    user: User!
+    app: App
+    members: [String]
+  }
+
+  type App {
+    title: String!
+    repoUrl: String
+    url: String
+    links: [String]
   }
 `;
 

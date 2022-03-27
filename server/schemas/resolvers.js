@@ -3,6 +3,7 @@ const {
   UserInputError,
 } = require("apollo-server-express");
 const { User } = require("../models");
+const Team = require("../models/Team");
 const { signToken } = require("../util/auth");
 const { dateScalar } = require("./customScalars");
 
@@ -15,7 +16,7 @@ const resolvers = {
       if (!ctx.user) {
         throw new AuthenticationError("Must be logged in.");
       }
-      return User.findOne({ email: ctx.user.email });
+      return User.findOne({ email: ctx.user.email }).populate("teams");
     },
   },
   Mutation: {
@@ -55,6 +56,26 @@ const resolvers = {
       // password will fail password validation
       await user.save({ validateBeforeSave: false });
       return { token, user };
+    },
+    async createTeam(parent, { teamInput }, { user }) {
+      return Team.create({ ...teamInput, user: user._id });
+    },
+    async addTeamMember(parent, { teamId, memberName }, { user }) {
+      if (!user) {
+        throw new AuthenticationError("Must include a valid token.");
+      }
+      return Team.findOneAndUpdate(
+        { _id: teamId, user: user._id },
+        { $addToSet: { members: memberName } },
+        { new: true }
+      );
+    },
+    async removeTeamMember(parent, { teamId, memberName }, { user }) {
+      return Team.findOneAndUpdate(
+        { _id: teamId, user: user._id },
+        { $pull: { members: memberName } },
+        { new: true }
+      );
     },
   },
 };

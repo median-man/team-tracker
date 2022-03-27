@@ -33,7 +33,7 @@ async function startServer({ port }) {
     const server = new ApolloServer({
       typeDefs,
       resolvers,
-      // context: authMiddleware,
+      context: authMiddleware,
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer: httpServer })],
     });
     await server.start();

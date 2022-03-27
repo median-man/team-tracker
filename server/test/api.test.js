@@ -20,8 +20,14 @@ afterAll(() => {
 });
 
 // helper for sending a graphql request
-const gqlRequest = ({ query, variables }) => {
+const gqlRequest = ({ query, variables, token }) => {
   const url = `http://localhost:${httpServer.address().port}`;
+  if (token) {
+    return request(url)
+      .post("/graphql")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ query, variables });
+  }
   return request(url).post("/graphql").send({ query, variables });
 };
 
@@ -34,6 +40,30 @@ const expectNoGqlErrors = (response) => {
         .join("\n")}`
     );
   }
+};
+
+const testUserInput = {
+  username: "testuser",
+  password: "Password12#",
+  email: "test@email.com",
+};
+const createTestUser = async (userInput = testUserInput) => {
+  const query = `mutation createUser($userInput: UserInput!) {
+    createUser(userInput: $userInput) {
+      user {
+        _id
+        email
+        username
+      }
+      token
+    }
+  }`;
+  const response = await gqlRequest({
+    query,
+    variables: { userInput },
+  });
+  expectNoGqlErrors(response);
+  return response.body.data.createUser;
 };
 
 it("apollo-server health check", async () => {
@@ -108,25 +138,7 @@ describe("create user mutation", () => {
 });
 
 describe("login mutation", () => {
-  const userInput = {
-    username: "testuser",
-    password: "Password12#",
-    email: "test@email.com",
-  };
-  beforeEach(async () => {
-    const query = `mutation createUser($userInput: UserInput!) {
-      createUser(userInput: $userInput) {
-        user {
-          _id
-          email
-          username
-        }
-        token
-      }
-    }`;
-    const response = await gqlRequest({ query, variables: { userInput } });
-    expectNoGqlErrors(response);
-  });
+  beforeEach(createTestUser);
 
   it("should return user and token", async () => {
     const query = `mutation login($email: String!, $password: String!) {
@@ -139,7 +151,10 @@ describe("login mutation", () => {
         token
       }
     }`;
-    const variables = { email: userInput.email, password: userInput.password };
+    const variables = {
+      email: testUserInput.email,
+      password: testUserInput.password,
+    };
     const response = await gqlRequest({ query, variables });
     expectNoGqlErrors(response);
     const { data } = response.body;
@@ -148,8 +163,8 @@ describe("login mutation", () => {
       expect.objectContaining({
         user: {
           _id: expect.any(String),
-          email: userInput.email,
-          username: userInput.username,
+          email: testUserInput.email,
+          username: testUserInput.username,
         },
         token: expect.any(String),
       })
@@ -167,7 +182,10 @@ describe("login mutation", () => {
         token
       }
     }`;
-    const variables = { email: userInput.email, password: userInput.password };
+    const variables = {
+      email: testUserInput.email,
+      password: testUserInput.password,
+    };
     const response = await gqlRequest({ query, variables });
     expectNoGqlErrors(response);
     const { user, token } = response.body.data.login;
@@ -177,5 +195,194 @@ describe("login mutation", () => {
       email: user.email,
       username: user.username,
     });
+  });
+});
+
+describe("teams", () => {
+  let token;
+  let user;
+  beforeEach(async () => {
+    ({ token, user } = await createTestUser());
+    expect(token).not.toBeNull();
+  });
+
+  test("create a team", async () => {
+    const query = `mutation createTeam($teamInput: TeamInput!) {
+      createTeam(teamInput: $teamInput) {
+        _id
+        name
+        user {
+          _id
+        }
+        members
+      }
+    }`;
+    const variables = {
+      teamInput: { name: "Test Team", members: ["Jerry", "Elaine"] },
+    };
+    const response = await gqlRequest({ query, variables, token });
+    expectNoGqlErrors(response);
+    const team = response.body.data.createTeam;
+    expect(team).toEqual(
+      expect.objectContaining({
+        _id: expect.any(String),
+        name: "Test Team",
+        user: {
+          _id: user._id,
+        },
+        members: ["Jerry", "Elaine"],
+      })
+    );
+  });
+
+  describe("update a team", () => {
+    let teamId;
+    beforeEach(async () => {
+      const query = `mutation createTeam($teamInput: TeamInput!) {
+        createTeam(teamInput: $teamInput) {
+          _id
+        }
+      }`;
+      const variables = {
+        teamInput: { name: "Test Team", members: ["Jerry", "Elaine"] },
+      };
+      const response = await gqlRequest({ query, variables, token });
+      expectNoGqlErrors(response);
+      teamId = response.body.data.createTeam._id;
+    });
+
+    describe("add member", () => {
+      test("add a member to a team", async () => {
+        const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
+            addTeamMember(teamId: $teamId, memberName: $memberName) {
+              _id
+              members
+            }
+          }`;
+        const variables = { teamId, memberName: "Kramer" };
+        const response = await gqlRequest({ query, variables, token });
+        expectNoGqlErrors(response);
+        expect(response.body.data.addTeamMember).toEqual(
+          expect.objectContaining({
+            _id: teamId,
+            members: expect.arrayContaining(["Kramer"]),
+          })
+        );
+      });
+
+      test("request must include auth", async () => {
+        const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
+          addTeamMember(teamId: $teamId, memberName: $memberName) {
+            _id
+            members
+          }
+        }`;
+        const variables = { teamId, memberName: "Kramer" };
+        const response = await gqlRequest({ query, variables });
+        const { errors, data } = response.body;
+        expect(data.addTeamMember).toBeNull();
+        expect(errors[0]).toMatchObject({
+          message: "Must include a valid token.",
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      });
+
+      test("can only update own team", async () => {
+        const { token } = await createTestUser({
+          username: "testuser2",
+          email: "user2@email.com",
+          password: "P@ssword123",
+        });
+        const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
+          addTeamMember(teamId: $teamId, memberName: $memberName) {
+            _id
+            members
+          }
+        }`;
+        // using id of team created for first testUser
+        const variables = { teamId, memberName: "Kramer" };
+        const response = await gqlRequest({ query, variables, token });
+        const { data } = response.body;
+        expect(data.addTeamMember).toBeNull();
+      });
+    });
+
+    describe("remove member", () => {
+      beforeEach(async () => {});
+
+      test("remove member from a team", async () => {
+        const query = `mutation removeTeamMember($teamId: ID!, $memberName: String!) {
+          removeTeamMember(teamId: $teamId, memberName: $memberName) {
+            _id
+            members
+          }
+        }`;
+        const variables = { teamId, memberName: "Elaine" };
+        const response = await gqlRequest({ query, variables, token });
+        expectNoGqlErrors(response);
+        expect(response.body.data.removeTeamMember).toEqual(
+          expect.objectContaining({
+            _id: teamId,
+            members: ["Jerry"],
+          })
+        );
+      });
+
+      test("can only update own team", async () => {
+        const { token } = await createTestUser({
+          username: "testuser2",
+          email: "user2@email.com",
+          password: "P@ssword123",
+        });
+        const query = `mutation removeTeamMember($teamId: ID!, $memberName: String!) {
+          removeTeamMember(teamId: $teamId, memberName: $memberName) {
+            _id
+            members
+          }
+        }`;
+        // use teamId of team belonging to first testUser
+        const variables = { teamId, memberName: "Elaine" };
+        const response = await gqlRequest({ query, variables, token });
+        const { data } = response.body;
+        expect(data.removeTeamMember).toBeNull();
+      });
+    });
+  });
+});
+
+describe("me query", () => {
+  let token;
+  beforeEach(async () => {
+    ({ token } = await createTestUser());
+    expect(token).not.toBeNull();
+  });
+
+  it("should return user data", async () => {
+    const query = `query me {
+      me {
+        _id
+        email
+        username
+        teams {
+          name
+        }
+      }
+    }`;
+    const variables = {
+      email: testUserInput.email,
+      password: testUserInput.password,
+    };
+    const response = await gqlRequest({ query, variables, token });
+    expectNoGqlErrors(response);
+    expect(response.body.data.me).toEqual(
+      expect.objectContaining({
+        _id: expect.any(String),
+        username: testUserInput.username,
+        email: testUserInput.email,
+        teams: [],
+      })
+    );
   });
 });
