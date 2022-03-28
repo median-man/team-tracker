@@ -2,7 +2,6 @@ const {
   AuthenticationError,
   UserInputError,
 } = require("apollo-server-express");
-const Team = require("../models/Team");
 const { signToken } = require("../util/auth");
 const { dateScalar } = require("./customScalars");
 
@@ -48,25 +47,30 @@ const resolvers = {
       const token = await signToken(user);
       return { token, user };
     },
-    async createTeam(parent, { teamInput }, { user }) {
-      return Team.create({ ...teamInput, user: user._id });
+    async createTeam(parent, { teamInput }, { user, dataSources }) {
+      const { teams } = dataSources;
+      return teams.create({ ...teamInput, userId: user._id });
     },
-    async addTeamMember(parent, { teamId, memberName }, { user }) {
+    async addTeamMember(parent, { teamId, memberName }, { user, dataSources }) {
       if (!user) {
         throw new AuthenticationError("Must include a valid token.");
       }
-      return Team.findOneAndUpdate(
-        { _id: teamId, user: user._id },
-        { $addToSet: { members: memberName } },
-        { new: true }
-      );
+      return dataSources.teams.addMember({
+        teamId,
+        memberName,
+        userId: user._id,
+      });
     },
-    async removeTeamMember(parent, { teamId, memberName }, { user }) {
-      return Team.findOneAndUpdate(
-        { _id: teamId, user: user._id },
-        { $pull: { members: memberName } },
-        { new: true }
-      );
+    async removeTeamMember(
+      parent,
+      { teamId, memberName },
+      { user, dataSources }
+    ) {
+      return dataSources.teams.removeMember({
+        teamId,
+        memberName,
+        userId: user._id,
+      });
     },
   },
 };
