@@ -7,6 +7,8 @@ const { typeDefs, resolvers } = require("./schemas");
 const db = require("./config/connection");
 const { authMiddleware } = require("./util/auth");
 const { ApolloServerPluginDrainHttpServer } = require("apollo-server-core");
+const { UsersSource } = require("./datasources");
+const { User } = require("./models");
 
 async function startServer({ port }) {
   try {
@@ -33,6 +35,7 @@ async function startServer({ port }) {
     const server = new ApolloServer({
       typeDefs,
       resolvers,
+      dataSources: () => ({ users: new UsersSource(User) }),
       context: authMiddleware,
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer: httpServer })],
     });
@@ -40,7 +43,7 @@ async function startServer({ port }) {
 
     server.applyMiddleware({
       app,
-      path: "/graphql"
+      path: "/graphql",
     });
 
     // start listening for requests
