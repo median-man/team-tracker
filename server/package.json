@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "apollo-datasource-mongodb": "^0.5.2",
     "apollo-server-express": "^3.6.3",
     "bcrypt": "^5.0.1",
     "dotenv": "^10.0.0",
