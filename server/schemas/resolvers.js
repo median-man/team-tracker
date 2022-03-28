@@ -2,7 +2,6 @@ const {
   AuthenticationError,
   UserInputError,
 } = require("apollo-server-express");
-const { User } = require("../models");
 const Team = require("../models/Team");
 const { signToken } = require("../util/auth");
 const { dateScalar } = require("./customScalars");
@@ -10,19 +9,20 @@ const { dateScalar } = require("./customScalars");
 const resolvers = {
   Date: dateScalar,
   Query: {
-    me: async (parent, args, ctx) => {
+    me: async (parent, args, { user, dataSources }) => {
       // if ctx.user is undefined, then no token or an invalid token was
       // provided by the client.
-      if (!ctx.user) {
+      if (!user) {
         throw new AuthenticationError("Must be logged in.");
       }
-      return User.findOne({ email: ctx.user.email }).populate("teams");
+      const { users } = dataSources;
+      return users.findOne({ email: user.email });
     },
   },
   Mutation: {
-    createUser: async (parent, { userInput }) => {
+    createUser: async (parent, { userInput }, { dataSources: { users } }) => {
       try {
-        const user = await User.create({ ...userInput });
+        const user = await users.create({ ...userInput });
         const token = await signToken(user);
         return { user, token };
       } catch (error) {
@@ -40,21 +40,12 @@ const resolvers = {
         throw error;
       }
     },
-    login: async (parent, args) => {
-      const { email, password } = args;
-      const user = await User.findOne({ email });
+    login: async (parent, { email, password }, { dataSources: { users } }) => {
+      const user = await users.login({ email, password });
       if (!user) {
         throw new AuthenticationError("Invalid username or password");
       }
-      const authentic = await user.isCorrectPassword(password);
-      if (!authentic) {
-        throw new AuthenticationError("Invalid username or password");
-      }
       const token = await signToken(user);
-      user.lastLogin = Date.now();
-      // skip validation because the only change is to lastLogin and hashed
-      // password will fail password validation
-      await user.save({ validateBeforeSave: false });
       return { token, user };
     },
     async createTeam(parent, { teamInput }, { user }) {
