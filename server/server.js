@@ -7,8 +7,8 @@ const { typeDefs, resolvers } = require("./schemas");
 const db = require("./config/connection");
 const { authMiddleware } = require("./util/auth");
 const { ApolloServerPluginDrainHttpServer } = require("apollo-server-core");
-const { UsersSource } = require("./datasources");
-const { User } = require("./models");
+const { UsersSource, TeamsSource } = require("./datasources");
+const { User, Team } = require("./models");
 
 async function startServer({ port }) {
   try {
@@ -35,7 +35,10 @@ async function startServer({ port }) {
     const server = new ApolloServer({
       typeDefs,
       resolvers,
-      dataSources: () => ({ users: new UsersSource(User) }),
+      dataSources: () => ({
+        users: new UsersSource(User),
+        teams: new TeamsSource(Team),
+      }),
       context: authMiddleware,
       plugins: [ApolloServerPluginDrainHttpServer({ httpServer: httpServer })],
     });
