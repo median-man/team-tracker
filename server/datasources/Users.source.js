@@ -2,7 +2,7 @@ const { MongoDataSource } = require("apollo-datasource-mongodb");
 
 class UsersSource extends MongoDataSource {
   findOne(criteria) {
-    return this.model.findOne(criteria).populate("teams");
+    return this.model.findOne(criteria);
   }
   create(values) {
     return this.model.create(values);

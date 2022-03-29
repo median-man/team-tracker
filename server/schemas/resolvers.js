@@ -78,6 +78,12 @@ const resolvers = {
       return { success: Boolean(team), team };
     },
   },
+  User: {
+    async teams(user, args, { dataSources: { teams } }) {
+      // await necessary to avoid querying twice due to apollo's implementation
+      return await teams.findByUserId(user._id);
+    },
+  },
 };
 
 module.exports = resolvers;

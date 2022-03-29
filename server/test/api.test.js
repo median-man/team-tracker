@@ -410,13 +410,11 @@ describe("me query", () => {
     };
     const response = await gqlRequest({ query, variables, token });
     expectNoGqlErrors(response);
-    expect(response.body.data.me).toEqual(
-      expect.objectContaining({
-        _id: expect.any(String),
-        username: testUserInput.username,
-        email: testUserInput.email,
-        teams: [],
-      })
-    );
+    expect(response.body.data.me).toMatchObject({
+      _id: expect.any(String),
+      username: testUserInput.username,
+      email: testUserInput.email,
+      teams: [],
+    });
   });
 });
