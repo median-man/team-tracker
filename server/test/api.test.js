@@ -4,6 +4,7 @@ const { startServer } = require("../server");
 const db = require("../config/connection");
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
+const { User, Team } = require("../models");
 
 let app, httpServer;
 beforeAll(async () => {
@@ -47,6 +48,7 @@ const testUserInput = {
   password: "Password12#",
   email: "test@email.com",
 };
+
 const createTestUser = async (userInput = testUserInput) => {
   const query = `mutation createUser($userInput: UserInput!) {
     createUser(userInput: $userInput) {
@@ -64,6 +66,28 @@ const createTestUser = async (userInput = testUserInput) => {
   });
   expectNoGqlErrors(response);
   return response.body.data.createUser;
+};
+
+const createTestTeam = async (token) => {
+  const query = `mutation createTeam($teamInput: TeamInput!) {
+    createTeam(teamInput: $teamInput) {
+      success
+      team {
+        _id
+        name
+        user {
+          _id
+        }
+        members
+      }
+    }
+  }`;
+  const variables = {
+    teamInput: { name: "Test Team", members: ["Jerry", "Elaine"] },
+  };
+  const response = await gqlRequest({ query, variables, token });
+  expectNoGqlErrors(response);
+  return response.body.data.createTeam;
 };
 
 it("apollo-server health check", async () => {
@@ -210,26 +234,8 @@ describe("teams", () => {
   });
 
   test("create a team", async () => {
-    const query = `mutation createTeam($teamInput: TeamInput!) {
-      createTeam(teamInput: $teamInput) {
-        success
-        team {
-          _id
-          name
-          user {
-            _id
-          }
-          members
-        }
-      }
-    }`;
-    const variables = {
-      teamInput: { name: "Test Team", members: ["Jerry", "Elaine"] },
-    };
-    const response = await gqlRequest({ query, variables, token });
-    expectNoGqlErrors(response);
-    const team = response.body.data.createTeam;
-    expect(team).toEqual(
+    const teamResponse = await createTestTeam(token);
+    expect(teamResponse).toEqual(
       expect.objectContaining({
         success: true,
         team: {
@@ -247,19 +253,8 @@ describe("teams", () => {
   describe("update a team", () => {
     let teamId;
     beforeEach(async () => {
-      const query = `mutation createTeam($teamInput: TeamInput!) {
-        createTeam(teamInput: $teamInput) {
-          team {
-            _id
-          }
-        }
-      }`;
-      const variables = {
-        teamInput: { name: "Test Team", members: ["Jerry", "Elaine"] },
-      };
-      const response = await gqlRequest({ query, variables, token });
-      expectNoGqlErrors(response);
-      teamId = response.body.data.createTeam.team._id;
+      const { team } = await createTestTeam(token);
+      teamId = team._id;
     });
 
     describe("add member", () => {
@@ -333,8 +328,6 @@ describe("teams", () => {
     });
 
     describe("remove member", () => {
-      beforeEach(async () => {});
-
       test("remove member from a team", async () => {
         const query = `mutation removeTeamMember($teamId: ID!, $memberName: String!) {
           removeTeamMember(teamId: $teamId, memberName: $memberName) {
