@@ -23,7 +23,7 @@ const resolvers = {
       try {
         const user = await users.create({ ...userInput });
         const token = await signToken(user);
-        return { user, token };
+        return { user, token, success: true };
       } catch (error) {
         if (error.name === "ValidationError") {
           const validationErrors = {};
@@ -45,7 +45,7 @@ const resolvers = {
         throw new AuthenticationError("Invalid username or password");
       }
       const token = await signToken(user);
-      return { token, user };
+      return { token, user, success: true };
     },
     async createTeam(parent, { teamInput }, { user, dataSources }) {
       const { teams } = dataSources;

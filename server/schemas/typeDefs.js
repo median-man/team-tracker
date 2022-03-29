@@ -10,8 +10,8 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createUser(userInput: UserInput!): Auth
-    login(email: String!, password: String!): Auth
+    createUser(userInput: UserInput!): AuthResponse
+    login(email: String!, password: String!): AuthResponse
     createTeam(teamInput: TeamInput!): Team
     addTeamMember(teamId: ID!, memberName: String!): Team
     removeTeamMember(teamId: ID!, memberName: String!): Team
@@ -28,7 +28,8 @@ const typeDefs = gql`
     members: [String]
   }
 
-  type Auth {
+  type AuthResponse {
+    success: Boolean!
     token: String!
     user: User!
   }

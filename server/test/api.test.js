@@ -108,6 +108,7 @@ describe("create user mutation", () => {
   it("should create a new user and token", async () => {
     const query = `mutation createUser($userInput: UserInput!) {
       createUser(userInput: $userInput) {
+        success
         user {
           _id
           email
@@ -140,9 +141,10 @@ describe("create user mutation", () => {
 describe("login mutation", () => {
   beforeEach(createTestUser);
 
-  it("should return user and token", async () => {
+  it("should return user, token, and success fields", async () => {
     const query = `mutation login($email: String!, $password: String!) {
       login(email: $email, password: $password) {
+        success
         user {
           _id
           email
@@ -161,6 +163,7 @@ describe("login mutation", () => {
 
     expect(data.login).toEqual(
       expect.objectContaining({
+        success: true,
         user: {
           _id: expect.any(String),
           email: testUserInput.email,
