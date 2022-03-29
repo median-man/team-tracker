@@ -5,6 +5,9 @@ class TeamsSource extends MongoDataSource {
   create({ userId, ...values }) {
     return Team.create({ ...values, user: userId });
   }
+  findByUserId(userId) {
+    return this.model.find({ user: userId });
+  }
   addMember({ memberName, teamId, userId }) {
     return Team.findOneAndUpdate(
       { _id: teamId, user: userId },
