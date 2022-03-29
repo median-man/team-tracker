@@ -49,6 +49,11 @@ const testUserInput = {
   email: "test@email.com",
 };
 
+const testTeamInput = {
+  name: "Test Team",
+  members: ["Jerry", "Elaine"],
+};
+
 const createTestUser = async (userInput = testUserInput) => {
   const query = `mutation createUser($userInput: UserInput!) {
     createUser(userInput: $userInput) {
@@ -82,9 +87,7 @@ const createTestTeam = async (token) => {
       }
     }
   }`;
-  const variables = {
-    teamInput: { name: "Test Team", members: ["Jerry", "Elaine"] },
-  };
+  const variables = { teamInput: testTeamInput };
   const response = await gqlRequest({ query, variables, token });
   expectNoGqlErrors(response);
   return response.body.data.createTeam;
@@ -383,6 +386,7 @@ describe("me query", () => {
   beforeEach(async () => {
     ({ token } = await createTestUser());
     expect(token).not.toBeNull();
+    await createTestTeam(token);
   });
 
   it("should return user data", async () => {
@@ -393,6 +397,7 @@ describe("me query", () => {
         username
         teams {
           name
+          members
         }
       }
     }`;
@@ -406,7 +411,7 @@ describe("me query", () => {
       _id: expect.any(String),
       username: testUserInput.username,
       email: testUserInput.email,
-      teams: [],
+      teams: [testTeamInput],
     });
   });
 });
