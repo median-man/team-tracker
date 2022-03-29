@@ -12,9 +12,9 @@ const typeDefs = gql`
   type Mutation {
     createUser(userInput: UserInput!): AuthResponse
     login(email: String!, password: String!): AuthResponse
-    createTeam(teamInput: TeamInput!): Team
-    addTeamMember(teamId: ID!, memberName: String!): Team
-    removeTeamMember(teamId: ID!, memberName: String!): Team
+    createTeam(teamInput: TeamInput!): TeamUpdateResponse
+    addTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
+    removeTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
   }
 
   input UserInput {
@@ -26,12 +26,6 @@ const typeDefs = gql`
   input TeamInput {
     name: String
     members: [String]
-  }
-
-  type AuthResponse {
-    success: Boolean!
-    token: String!
-    user: User!
   }
 
   type User {
@@ -55,6 +49,17 @@ const typeDefs = gql`
     repoUrl: String
     url: String
     links: [String]
+  }
+
+  # Mutation Response Types
+  type AuthResponse {
+    success: Boolean!
+    token: String!
+    user: User!
+  }
+  type TeamUpdateResponse {
+    success: Boolean!
+    team: Team
   }
 `;
 

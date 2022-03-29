@@ -212,12 +212,15 @@ describe("teams", () => {
   test("create a team", async () => {
     const query = `mutation createTeam($teamInput: TeamInput!) {
       createTeam(teamInput: $teamInput) {
-        _id
-        name
-        user {
+        success
+        team {
           _id
+          name
+          user {
+            _id
+          }
+          members
         }
-        members
       }
     }`;
     const variables = {
@@ -228,12 +231,15 @@ describe("teams", () => {
     const team = response.body.data.createTeam;
     expect(team).toEqual(
       expect.objectContaining({
-        _id: expect.any(String),
-        name: "Test Team",
-        user: {
-          _id: user._id,
+        success: true,
+        team: {
+          _id: expect.any(String),
+          name: "Test Team",
+          user: {
+            _id: user._id,
+          },
+          members: ["Jerry", "Elaine"],
         },
-        members: ["Jerry", "Elaine"],
       })
     );
   });
@@ -243,7 +249,9 @@ describe("teams", () => {
     beforeEach(async () => {
       const query = `mutation createTeam($teamInput: TeamInput!) {
         createTeam(teamInput: $teamInput) {
-          _id
+          team {
+            _id
+          }
         }
       }`;
       const variables = {
@@ -251,33 +259,40 @@ describe("teams", () => {
       };
       const response = await gqlRequest({ query, variables, token });
       expectNoGqlErrors(response);
-      teamId = response.body.data.createTeam._id;
+      teamId = response.body.data.createTeam.team._id;
     });
 
     describe("add member", () => {
       test("add a member to a team", async () => {
         const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
             addTeamMember(teamId: $teamId, memberName: $memberName) {
-              _id
-              members
+              success
+              team {
+                _id
+                members
+              }
             }
           }`;
         const variables = { teamId, memberName: "Kramer" };
         const response = await gqlRequest({ query, variables, token });
         expectNoGqlErrors(response);
-        expect(response.body.data.addTeamMember).toEqual(
-          expect.objectContaining({
+        console.log(response.body.data.addTeamMember);
+        expect(response.body.data.addTeamMember).toMatchObject({
+          success: true,
+          team: {
             _id: teamId,
             members: expect.arrayContaining(["Kramer"]),
-          })
-        );
+          },
+        });
       });
 
       test("request must include auth", async () => {
         const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
           addTeamMember(teamId: $teamId, memberName: $memberName) {
-            _id
-            members
+            team {
+              _id
+              members
+            }
           }
         }`;
         const variables = { teamId, memberName: "Kramer" };
@@ -300,15 +315,21 @@ describe("teams", () => {
         });
         const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
           addTeamMember(teamId: $teamId, memberName: $memberName) {
-            _id
-            members
+            success
+            team {
+              _id
+              members
+            }
           }
         }`;
         // using id of team created for first testUser
         const variables = { teamId, memberName: "Kramer" };
         const response = await gqlRequest({ query, variables, token });
         const { data } = response.body;
-        expect(data.addTeamMember).toBeNull();
+        expect(data.addTeamMember).toMatchObject({
+          success: false,
+          team: null,
+        });
       });
     });
 
@@ -318,19 +339,23 @@ describe("teams", () => {
       test("remove member from a team", async () => {
         const query = `mutation removeTeamMember($teamId: ID!, $memberName: String!) {
           removeTeamMember(teamId: $teamId, memberName: $memberName) {
-            _id
-            members
+            success
+            team {
+              _id
+              members
+            }
           }
         }`;
         const variables = { teamId, memberName: "Elaine" };
         const response = await gqlRequest({ query, variables, token });
         expectNoGqlErrors(response);
-        expect(response.body.data.removeTeamMember).toEqual(
-          expect.objectContaining({
+        expect(response.body.data.removeTeamMember).toMatchObject({
+          success: true,
+          team: {
             _id: teamId,
-            members: ["Jerry"],
-          })
-        );
+            members: expect.not.arrayContaining(["Elaine"]),
+          },
+        });
       });
 
       test("can only update own team", async () => {
@@ -341,15 +366,21 @@ describe("teams", () => {
         });
         const query = `mutation removeTeamMember($teamId: ID!, $memberName: String!) {
           removeTeamMember(teamId: $teamId, memberName: $memberName) {
-            _id
-            members
+            success
+            team {
+              _id
+              members
+            }
           }
         }`;
         // use teamId of team belonging to first testUser
         const variables = { teamId, memberName: "Elaine" };
         const response = await gqlRequest({ query, variables, token });
         const { data } = response.body;
-        expect(data.removeTeamMember).toBeNull();
+        expect(data.removeTeamMember).toMatchObject({
+          success: false,
+          team: null,
+        });
       });
     });
   });

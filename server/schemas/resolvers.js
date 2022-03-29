@@ -49,28 +49,33 @@ const resolvers = {
     },
     async createTeam(parent, { teamInput }, { user, dataSources }) {
       const { teams } = dataSources;
-      return teams.create({ ...teamInput, userId: user._id });
+      return {
+        success: true,
+        team: teams.create({ ...teamInput, userId: user._id }),
+      };
     },
     async addTeamMember(parent, { teamId, memberName }, { user, dataSources }) {
       if (!user) {
         throw new AuthenticationError("Must include a valid token.");
       }
-      return dataSources.teams.addMember({
+      const team = await dataSources.teams.addMember({
         teamId,
         memberName,
         userId: user._id,
       });
+      return { success: Boolean(team), team };
     },
     async removeTeamMember(
       parent,
       { teamId, memberName },
       { user, dataSources }
     ) {
-      return dataSources.teams.removeMember({
+      const team = await dataSources.teams.removeMember({
         teamId,
         memberName,
         userId: user._id,
       });
+      return { success: Boolean(team), team };
     },
   },
 };
