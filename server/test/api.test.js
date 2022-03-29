@@ -276,7 +276,6 @@ describe("teams", () => {
         const variables = { teamId, memberName: "Kramer" };
         const response = await gqlRequest({ query, variables, token });
         expectNoGqlErrors(response);
-        console.log(response.body.data.addTeamMember);
         expect(response.body.data.addTeamMember).toMatchObject({
           success: true,
           team: {
