@@ -62,6 +62,10 @@ teamSchema.virtual("notes", {
   foreignField: "team",
 });
 
+teamSchema.methods.addNote = async function addNoteToTeam(noteData) {
+  return mongoose.model("Note").create({ ...noteData, team: this._id });
+};
+
 const Team = model("Team", teamSchema);
 
 module.exports = Team;
