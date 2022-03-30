@@ -21,6 +21,13 @@ class TeamsSource extends MongoDataSource {
       { new: true }
     );
   }
+  updateApp({ teamId, ...appData }) {
+    return this.model.findOneAndUpdate(
+      { _id: teamId },
+      { app: appData },
+      { new: true }
+    );
+  }
 }
 
 module.exports = TeamsSource;
