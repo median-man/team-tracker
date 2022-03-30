@@ -449,6 +449,16 @@ describe("teams", () => {
   });
 });
 
+describe("notes", () => {
+  describe("create a note", () => {
+    test.todo("create a new note");
+    test.todo("can only add notes to own teams");
+  });
+  describe("find notes", () => {});
+  describe("edit a note", () => {});
+  describe("delete a note", () => {});
+});
+
 describe("me query", () => {
   let token;
   beforeEach(async () => {
