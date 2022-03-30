@@ -378,6 +378,40 @@ describe("teams", () => {
         });
       });
     });
+
+    describe("update app", () => {
+      test("set the app field for a team", async () => {
+        const query = `mutation updateApp($teamId: ID!, $appInput: AppInput!) {
+          updateApp(teamId: $teamId, appInput: $appInput) {
+            success
+            team {
+              _id
+              app {
+                title
+                repoUrl
+                url
+              }
+            }
+          }
+        }`;
+        const variables = {
+          teamId,
+          appInput: {
+            title: "Test App",
+            repoUrl: "https://github.com/median-man/test-app",
+            url: "https://www.test-app.com",
+          },
+        };
+        const response = await gqlRequest({ query, variables, token });
+        expectNoGqlErrors(response);
+        expect(response.body.data.updateApp).toMatchObject({
+          success: true,
+          team: {
+            _id: teamId
+          }
+        })
+      });
+    });
   });
 });
 

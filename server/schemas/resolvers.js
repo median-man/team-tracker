@@ -77,6 +77,14 @@ const resolvers = {
       });
       return { success: Boolean(team), team };
     },
+    async updateApp(
+      parent,
+      { teamId, appInput },
+      { user, dataSources: { teams } }
+    ) {
+      const team = await teams.updateApp({ teamId, ...appInput });
+      return { success: true, team };
+    },
   },
   User: {
     async teams(user, args, { dataSources: { teams } }) {

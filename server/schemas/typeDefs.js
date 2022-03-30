@@ -15,6 +15,7 @@ const typeDefs = gql`
     createTeam(teamInput: TeamInput!): TeamUpdateResponse
     addTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
     removeTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
+    updateApp(teamId: ID!, appInput: AppInput!): TeamUpdateResponse
   }
 
   input UserInput {
@@ -26,6 +27,12 @@ const typeDefs = gql`
   input TeamInput {
     name: String
     members: [String]
+  }
+
+  input AppInput {
+    title: String
+    repoUrl: String
+    url: String
   }
 
   type User {
