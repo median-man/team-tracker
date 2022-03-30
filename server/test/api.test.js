@@ -451,7 +451,35 @@ describe("teams", () => {
 
 describe("notes", () => {
   describe("create a note", () => {
-    test.todo("create a new note");
+    test("create a new note", async () => {
+      // create test user
+      const { token } = await createTestUser();
+      // create test team
+      const { team } = await createTestTeam(token);
+      // add a note to the team
+      const query = `mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
+        createNote(teamId: $teamId, noteInput: $noteInput) {
+          success
+          note {
+            _id
+          }
+        }
+      }`;
+      const variables = {
+        teamId: team._id,
+        noteInput: {
+          body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
+        },
+      };
+      const response = await gqlRequest({ query, variables, token });
+      // assert that no gql errors occurred
+      expectNoGqlErrors(response);
+      // assert the return values match expected values
+      expect(response.body.data.createNote).toMatchObject({
+        success: true,
+        note: { _id: expect.any(String) },
+      });
+    });
     test.todo("can only add notes to own teams");
   });
   describe("find notes", () => {});

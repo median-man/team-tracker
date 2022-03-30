@@ -93,6 +93,15 @@ const resolvers = {
       });
       return { success: team !== null, team };
     },
+
+    async createNote(
+      parent,
+      { teamId, noteInput },
+      { dataSources: { teams } }
+    ) {
+      const note = await teams.addNote({ teamId, ...noteInput });
+      return { success: true, note };
+    },
   },
   User: {
     async teams(user, args, { dataSources: { teams } }) {

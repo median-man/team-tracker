@@ -16,6 +16,7 @@ const typeDefs = gql`
     addTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
     removeTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
     updateApp(teamId: ID!, appInput: AppInput!): TeamUpdateResponse
+    createNote(teamId: ID!, noteInput: NoteInput!): NoteUpdateResponse
   }
 
   input UserInput {
@@ -33,6 +34,10 @@ const typeDefs = gql`
     title: String
     repoUrl: String
     url: String
+  }
+
+  input NoteInput {
+    body: String
   }
 
   type User {
@@ -58,6 +63,12 @@ const typeDefs = gql`
     links: [String]
   }
 
+  type Note {
+    _id: ID!
+    body: String!
+    team: Team!
+  }
+
   # Mutation Response Types
   type AuthResponse {
     success: Boolean!
@@ -67,6 +78,10 @@ const typeDefs = gql`
   type TeamUpdateResponse {
     success: Boolean!
     team: Team
+  }
+  type NoteUpdateResponse {
+    success: Boolean!
+    note: Note
   }
 `;
 
