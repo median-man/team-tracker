@@ -21,9 +21,13 @@ class TeamsSource extends MongoDataSource {
       { new: true }
     );
   }
-  updateApp({ teamId, ...appData }) {
+
+  /**
+   * Updates the app field for a team which matches given userId and teamId. Returns null if no matching team is found.
+   */
+  updateApp({ userId, teamId, ...appData }) {
     return this.model.findOneAndUpdate(
-      { _id: teamId },
+      { _id: teamId, user: userId },
       { app: appData },
       { new: true }
     );

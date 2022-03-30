@@ -407,9 +407,43 @@ describe("teams", () => {
         expect(response.body.data.updateApp).toMatchObject({
           success: true,
           team: {
-            _id: teamId
+            _id: teamId,
+          },
+        });
+      });
+
+      test("can only update an app for own team", async () => {
+        const { token } = await createTestUser({
+          username: "testuser2",
+          email: "user2@email.com",
+          password: "P@ssword123",
+        });
+        const query = `mutation updateApp($teamId: ID!, $appInput: AppInput!) {
+          updateApp(teamId: $teamId, appInput: $appInput) {
+            success
+            team {
+              _id
+              app {
+                title
+                repoUrl
+                url
+              }
+            }
           }
-        })
+        }`;
+        const variables = {
+          teamId,
+          appInput: {
+            title: "Test App",
+            repoUrl: "https://github.com/median-man/test-app",
+            url: "https://www.test-app.com",
+          },
+        };
+        const response = await gqlRequest({ query, variables, token });
+        expect(response.body.data.updateApp).toMatchObject({
+          success: false,
+          team: null,
+        });
       });
     });
   });

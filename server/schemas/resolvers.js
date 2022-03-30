@@ -77,13 +77,21 @@ const resolvers = {
       });
       return { success: Boolean(team), team };
     },
+
+    /**
+     * Find given team for the authenticated user and updates the app field.
+     */
     async updateApp(
       parent,
       { teamId, appInput },
       { user, dataSources: { teams } }
     ) {
-      const team = await teams.updateApp({ teamId, ...appInput });
-      return { success: true, team };
+      const team = await teams.updateApp({
+        userId: user._id,
+        teamId,
+        ...appInput,
+      });
+      return { success: team !== null, team };
     },
   },
   User: {
