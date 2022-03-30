@@ -32,6 +32,14 @@ class TeamsSource extends MongoDataSource {
       { new: true }
     );
   }
+
+  async addNote({ teamId, ...noteData }) {
+    const team = await this.model.findOne({  _id: teamId });
+    if (!team) {
+      return null;
+    }
+    return team.addNote(noteData);
+  }
 }
 
 module.exports = TeamsSource;
