@@ -33,8 +33,11 @@ class TeamsSource extends MongoDataSource {
     );
   }
 
-  async addNote({ teamId, ...noteData }) {
-    const team = await this.model.findOne({  _id: teamId });
+  /**
+   * Creates a new note for matching teamId. Returns null if no matching team found belonging to the given userId.
+   */
+  async addNote({ userId, teamId, ...noteData }) {
+    const team = await this.model.findOne({ _id: teamId, user: userId });
     if (!team) {
       return null;
     }

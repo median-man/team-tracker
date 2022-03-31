@@ -451,11 +451,15 @@ describe("teams", () => {
 
 describe("notes", () => {
   describe("create a note", () => {
+    let token;
+    let team;
+
+    beforeEach(async () => {
+      ({ token } = await createTestUser());
+      ({ team } = await createTestTeam(token));
+    });
+
     test("create a new note", async () => {
-      // create test user
-      const { token } = await createTestUser();
-      // create test team
-      const { team } = await createTestTeam(token);
       // add a note to the team
       const query = `mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
         createNote(teamId: $teamId, noteInput: $noteInput) {
@@ -480,8 +484,36 @@ describe("notes", () => {
         note: { _id: expect.any(String) },
       });
     });
-    test.todo("can only add notes to own teams");
+
+    test("can only add notes to own teams", async () => {
+      // create a second user which will try to create a team for the testUser
+      const { token } = await createTestUser({
+        username: "user2",
+        email: "user2@email.com",
+        password: "P@ssword123",
+      });
+      // add a note to the team
+      const query = `mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
+        createNote(teamId: $teamId, noteInput: $noteInput) {
+          success
+          note {
+            _id
+          }
+        }
+      }`;
+      const variables = {
+        teamId: team._id,
+        noteInput: {
+          body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
+        },
+      };
+      const response = await gqlRequest({ query, variables, token });
+      expect(response.body.data.createNote).toMatchObject({
+        success: false,
+      });
+    });
   });
+
   describe("find notes", () => {});
   describe("edit a note", () => {});
   describe("delete a note", () => {});

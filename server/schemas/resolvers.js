@@ -94,13 +94,23 @@ const resolvers = {
       return { success: team !== null, team };
     },
 
+    /**
+     * Find given teamId and create a note associated with that team. Team must belong to auth. user.
+     */
     async createNote(
       parent,
       { teamId, noteInput },
-      { dataSources: { teams } }
+      { user, dataSources: { teams } }
     ) {
-      const note = await teams.addNote({ teamId, ...noteInput });
-      return { success: true, note };
+      const note = await teams.addNote({
+        teamId,
+        userId: user._id,
+        ...noteInput,
+      });
+      if (note) {
+        return { success: true, note };
+      }
+      return { success: false };
     },
   },
   User: {
