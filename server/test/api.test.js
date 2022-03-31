@@ -450,38 +450,49 @@ describe("teams", () => {
 });
 
 describe("notes", () => {
-  describe("create a note", () => {
-    let token;
-    let team;
+  let token;
+  let team;
+  const noteData = {
+    body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
+  };
 
-    beforeEach(async () => {
-      ({ token } = await createTestUser());
-      ({ team } = await createTestTeam(token));
-    });
+  beforeEach(async () => {
+    ({ token } = await createTestUser());
+    ({ team } = await createTestTeam(token));
+  });
 
-    test("create a new note", async () => {
-      // add a note to the team
-      const query = `mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
-        createNote(teamId: $teamId, noteInput: $noteInput) {
-          success
-          note {
-            _id
+  const createNote = async (
+    { body } = noteData,
+    { authToken } = { authToken: token } // options
+  ) => {
+    // add a note to the team
+    const query = `
+        mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
+          createNote(teamId: $teamId, noteInput: $noteInput) {
+            success
+            note {
+              _id
+              body
+            }
           }
-        }
-      }`;
-      const variables = {
-        teamId: team._id,
-        noteInput: {
-          body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
-        },
-      };
-      const response = await gqlRequest({ query, variables, token });
-      // assert that no gql errors occurred
-      expectNoGqlErrors(response);
+        }`;
+    const variables = {
+      teamId: team._id,
+      noteInput: { body },
+    };
+    const response = await gqlRequest({ query, variables, token: authToken });
+    // assert that no gql errors occurred
+    expectNoGqlErrors(response);
+    return response.body.data.createNote;
+  };
+
+  describe("create a note", () => {
+    test("create a new note", async () => {
+      const createNoteResponse = await createNote();
       // assert the return values match expected values
-      expect(response.body.data.createNote).toMatchObject({
+      expect(createNoteResponse).toMatchObject({
         success: true,
-        note: { _id: expect.any(String) },
+        note: { _id: expect.any(String), ...noteData },
       });
     });
 
@@ -492,23 +503,10 @@ describe("notes", () => {
         email: "user2@email.com",
         password: "P@ssword123",
       });
-      // add a note to the team
-      const query = `mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
-        createNote(teamId: $teamId, noteInput: $noteInput) {
-          success
-          note {
-            _id
-          }
-        }
-      }`;
-      const variables = {
-        teamId: team._id,
-        noteInput: {
-          body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
-        },
-      };
-      const response = await gqlRequest({ query, variables, token });
-      expect(response.body.data.createNote).toMatchObject({
+      const createNoteResult = await createNote(noteData, {
+        authToken: token,
+      });
+      expect(createNoteResult).toMatchObject({
         success: false,
       });
     });
