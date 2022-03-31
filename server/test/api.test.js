@@ -514,9 +514,15 @@ describe("notes", () => {
     });
   });
 
-  describe("find notes", () => {});
-  describe("edit a note", () => {});
-  describe("delete a note", () => {});
+  describe("edit a note", () => {
+    test.todo("update note body");
+    test.todo("can only update own notes");
+  });
+
+  describe("delete a note", () => {
+    test.todo("completely removes the note");
+    test.todo("can only delete own notes");
+  });
 });
 
 describe("me query", () => {
@@ -552,4 +558,8 @@ describe("me query", () => {
       teams: [testTeamInput],
     });
   });
+
+  test.todo("should return all my teams");
+  test.todo("should return a team given an optional teamId param");
+  test.todo("should return the notes for a given teamId");
 });
