@@ -13,7 +13,14 @@ class NotesSource extends MongoDataSource {
       return null;
     }
 
-   return this.model.create({ ...noteData, team: teamId, user: userId });
+    return this.model.create({ ...noteData, team: teamId, user: userId });
+  }
+
+  /**
+   * Update a note and return a promise which resolved the updated note.
+   */
+  updateNote(noteId, noteData) {
+    return this.model.findByIdAndUpdate(noteId, noteData, { new: true });
   }
 }
 
