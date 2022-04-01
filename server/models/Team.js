@@ -63,7 +63,7 @@ teamSchema.virtual("notes", {
 });
 
 teamSchema.methods.addNote = async function addNoteToTeam(noteData) {
-  return mongoose.model("Note").create({ ...noteData, team: this._id });
+  return mongoose.model("Note").create({ ...noteData, team: this._id, user: this.user });
 };
 
 const Team = model("Team", teamSchema);

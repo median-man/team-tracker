@@ -14,6 +14,13 @@ const noteSchema = new Schema(
       trim: true,
       minlength: 1,
     },
+    // while the user could be found through the Team model, including the user
+    // makes it easier when handling authorization for updating/deleting
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    }
   },
   { timestamps: true }
 );
