@@ -112,6 +112,18 @@ const resolvers = {
       }
       return { success: false };
     },
+
+    /**
+     * Find given noteId and update the note. Returns a NoteUpdateResponse with the updated note data.
+     */
+    async updateNote(
+      parent,
+      { noteId, noteInput },
+      { dataSources: { notes } }
+    ) {
+      const note = await notes.updateNote(noteId, noteInput);
+      return { success: true, note };
+    },
   },
   User: {
     async teams(user, args, { dataSources: { teams } }) {

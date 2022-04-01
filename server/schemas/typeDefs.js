@@ -17,6 +17,7 @@ const typeDefs = gql`
     removeTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
     updateApp(teamId: ID!, appInput: AppInput!): TeamUpdateResponse
     createNote(teamId: ID!, noteInput: NoteInput!): NoteUpdateResponse
+    updateNote(noteId: ID!, noteInput: NoteInput!): NoteUpdateResponse
   }
 
   input UserInput {

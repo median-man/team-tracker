@@ -513,7 +513,33 @@ describe("notes", () => {
   });
 
   describe("edit a note", () => {
-    test.todo("update note body");
+    test("update note body", async () => {
+      const { note } = await createNote();
+      const query = `
+        mutation updateNote($noteId: ID!, $noteInput: NoteInput!) {
+          updateNote(noteId: $noteId, noteInput: $noteInput) {
+            success
+            note {
+              _id
+              body
+            }
+          }
+        }`;
+      const noteInput = {
+        body: "Jerry, just remember, it's not a lie if you believe it.",
+      };
+      const variables = { noteId: note._id, noteInput };
+      const response = await gqlRequest({ query, variables, token });
+      expectNoGqlErrors(response);
+      expect(response.body.data.updateNote).toMatchObject({
+        success: true,
+        note: expect.objectContaining({
+          _id: expect.any(String),
+          body: noteInput.body,
+        }),
+      });
+    });
+
     test.todo("can only update own notes");
   });
 
