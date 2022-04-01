@@ -114,15 +114,24 @@ const resolvers = {
     },
 
     /**
-     * Find given noteId and update the note. Returns a NoteUpdateResponse with the updated note data.
+     * Find given noteId and update the note.
+     *
+     * Returns a NoteUpdateResponse with the updated note data. Request returns
+     * {success: false} if user is not authorized to update the note.
      */
     async updateNote(
       parent,
       { noteId, noteInput },
-      { dataSources: { notes } }
+      { user, dataSources: { notes } }
     ) {
-      const note = await notes.updateNote(noteId, noteInput);
-      return { success: true, note };
+      const note = await notes.updateNote(
+        { noteId, userId: user._id },
+        noteInput
+      );
+      if (note) {
+        return { success: true, note };
+      }
+      return { success: false };
     },
   },
   User: {

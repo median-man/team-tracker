@@ -19,8 +19,12 @@ class NotesSource extends MongoDataSource {
   /**
    * Update a note and return a promise which resolved the updated note.
    */
-  updateNote(noteId, noteData) {
-    return this.model.findByIdAndUpdate(noteId, noteData, { new: true });
+  updateNote({ noteId, userId }, noteData) {
+    return this.model.findOneAndUpdate(
+      { _id: noteId, user: userId },
+      noteData,
+      { new: true }
+    );
   }
 }
 

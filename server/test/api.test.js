@@ -513,8 +513,13 @@ describe("notes", () => {
   });
 
   describe("edit a note", () => {
+    let note;
+
+    beforeEach(async () => {
+      ({ note } = await createNote());
+    });
+
     test("update note body", async () => {
-      const { note } = await createNote();
       const query = `
         mutation updateNote($noteId: ID!, $noteInput: NoteInput!) {
           updateNote(noteId: $noteId, noteInput: $noteInput) {
@@ -540,7 +545,37 @@ describe("notes", () => {
       });
     });
 
-    test.todo("can only update own notes");
+    test("can only update own notes", async () => {
+      // login as different user
+      const { token } = await createTestUser({
+        username: "OtherUser",
+        email: "other@email.com",
+        password: "P@ssword123",
+      });
+
+      // try to update other user's note
+      const query = `
+        mutation updateNote($noteId: ID!, $noteInput: NoteInput!) {
+          updateNote(noteId: $noteId, noteInput: $noteInput) {
+            success
+            note {
+              _id
+              body
+            }
+          }
+        }`;
+      const noteInput = {
+        body: "Jerry, just remember, it's not a lie if you believe it.",
+      };
+      const variables = { noteId: note._id, noteInput };
+      const response = await gqlRequest({ query, variables, token });
+
+      // assert failed update
+      expect(response.body.data.updateNote).toMatchObject({
+        success: false,
+        note: null,
+      });
+    });
   });
 
   describe("delete a note", () => {
