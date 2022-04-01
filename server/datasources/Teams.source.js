@@ -4,8 +4,8 @@ class TeamsSource extends MongoDataSource {
   create({ userId, ...values }) {
     return this.model.create({ ...values, user: userId });
   }
-  findByUserId(userId) {
-    return this.model.find({ user: userId });
+  findByUserId(userId, criteria = {}) {
+    return this.model.find({ user: userId, ...criteria });
   }
   addMember({ memberName, teamId, userId }) {
     return this.model.findOneAndUpdate(
@@ -31,17 +31,6 @@ class TeamsSource extends MongoDataSource {
       { app: appData },
       { new: true }
     );
-  }
-
-  /**
-   * Creates a new note for matching teamId. Returns null if no matching team found belonging to the given userId.
-   */
-  async addNote({ userId, teamId, ...noteData }) {
-    const team = await this.model.findOne({ _id: teamId, user: userId });
-    if (!team) {
-      return null;
-    }
-    return team.addNote(noteData);
   }
 }
 

@@ -100,9 +100,9 @@ const resolvers = {
     async createNote(
       parent,
       { teamId, noteInput },
-      { user, dataSources: { teams } }
+      { user, dataSources: { notes } }
     ) {
-      const note = await teams.addNote({
+      const note = await notes.createNote({
         teamId,
         userId: user._id,
         ...noteInput,
