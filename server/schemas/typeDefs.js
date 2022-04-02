@@ -54,7 +54,6 @@ const typeDefs = gql`
   type Team {
     _id: ID!
     name: String!
-    user: User!
     app: App
     members: [String]
   }

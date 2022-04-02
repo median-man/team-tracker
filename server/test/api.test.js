@@ -80,9 +80,6 @@ const createTestTeam = async (token) => {
       team {
         _id
         name
-        user {
-          _id
-        }
         members
       }
     }
@@ -238,19 +235,14 @@ describe("teams", () => {
 
   test("create a team", async () => {
     const teamResponse = await createTestTeam(token);
-    expect(teamResponse).toEqual(
-      expect.objectContaining({
-        success: true,
-        team: {
-          _id: expect.any(String),
-          name: "Test Team",
-          user: {
-            _id: user._id,
-          },
-          members: ["Jerry", "Elaine"],
-        },
-      })
-    );
+    expect(teamResponse).toEqual({
+      success: true,
+      team: {
+        _id: expect.any(String),
+        name: "Test Team",
+        members: ["Jerry", "Elaine"],
+      },
+    });
   });
 
   describe("update a team", () => {
