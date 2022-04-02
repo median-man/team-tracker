@@ -9,12 +9,18 @@ class TeamsSource extends MongoDataSource {
   }
 
   /**
-   * Update team with the given teamId.
+   * Update team with the given teamId belonging to the given userId.
+   * 
+   * Returns the updated team if update is successful, or else returns null.
    */
-  update(teamId, teamInput) {
-    return this.model.findOneAndUpdate({ _id: teamId }, teamInput, {
-      new: true,
-    });
+  update({ teamId, userId }, teamInput) {
+    return this.model.findOneAndUpdate(
+      { _id: teamId, user: userId },
+      teamInput,
+      {
+        new: true,
+      }
+    );
   }
 
   addMember({ memberName, teamId, userId }) {

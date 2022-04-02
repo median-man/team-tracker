@@ -54,16 +54,20 @@ const resolvers = {
         team: teams.create({ ...teamInput, userId: user._id }),
       };
     },
+
     /**
-     * Update team matching the given teamId.
+     * Update team matching the given teamId if the team belongs to the logged in user.
      */
     async updateTeam(
       parent,
       { teamId, teamInput },
-      { dataSources: { teams } }
+      { user, dataSources: { teams } }
     ) {
-      const team = await teams.update(teamId, teamInput);
-      return { success: true, team };
+      const team = await teams.update({ teamId, userId: user._id }, teamInput);
+      if (team) {
+        return { success: true, team };
+      }
+      return { success: false };
     },
 
     async addTeamMember(parent, { teamId, memberName }, { user, dataSources }) {
