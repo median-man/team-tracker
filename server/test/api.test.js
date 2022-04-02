@@ -54,6 +54,10 @@ const testTeamInput = {
   members: ["Jerry", "Elaine"],
 };
 
+const testNoteInput = {
+  body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
+};
+
 /**
  * Returns a new test user and token.
  */
@@ -91,6 +95,28 @@ const createTestTeam = async (token, teamInput = testTeamInput) => {
   const response = await gqlRequest({ query, variables, token });
   expectNoGqlErrors(response);
   return response.body.data.createTeam;
+};
+
+const createTestNote = async (token, teamId, { body } = testNoteInput) => {
+  // add a note to the team
+  const query = `
+      mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
+        createNote(teamId: $teamId, noteInput: $noteInput) {
+          success
+          note {
+            _id
+            body
+          }
+        }
+      }`;
+  const variables = {
+    teamId,
+    noteInput: { body },
+  };
+  const response = await gqlRequest({ query, variables, token });
+  // assert that no gql errors occurred
+  expectNoGqlErrors(response);
+  return response.body.data.createNote;
 };
 
 it("apollo-server health check", async () => {
@@ -496,47 +522,19 @@ describe("teams", () => {
 describe("notes", () => {
   let token;
   let team;
-  const noteData = {
-    body: "According to most studies, people’s number one fear is public speaking. Number two is death. Death is number two. Does that sound right? This means to the average person, if you go to a funeral, you’re better off in the casket than doing the eulogy.",
-  };
 
   beforeEach(async () => {
     ({ token } = await createTestUser());
     ({ team } = await createTestTeam(token));
   });
 
-  const createNote = async (
-    { body } = noteData,
-    { authToken } = { authToken: token } // options
-  ) => {
-    // add a note to the team
-    const query = `
-        mutation createNote($teamId: ID!, $noteInput: NoteInput!) {
-          createNote(teamId: $teamId, noteInput: $noteInput) {
-            success
-            note {
-              _id
-              body
-            }
-          }
-        }`;
-    const variables = {
-      teamId: team._id,
-      noteInput: { body },
-    };
-    const response = await gqlRequest({ query, variables, token: authToken });
-    // assert that no gql errors occurred
-    expectNoGqlErrors(response);
-    return response.body.data.createNote;
-  };
-
   describe("create a note", () => {
     test("create a new note", async () => {
-      const createNoteResponse = await createNote();
+      const createNoteResponse = await createTestNote(token, team._id);
       // assert the return values match expected values
       expect(createNoteResponse).toMatchObject({
         success: true,
-        note: { _id: expect.any(String), ...noteData },
+        note: { _id: expect.any(String), ...testNoteInput },
       });
     });
 
@@ -547,9 +545,7 @@ describe("notes", () => {
         email: "user2@email.com",
         password: "P@ssword123",
       });
-      const createNoteResult = await createNote(noteData, {
-        authToken: token,
-      });
+      const createNoteResult = await createTestNote(token, team._id, testNoteInput);
       expect(createNoteResult).toMatchObject({
         success: false,
       });
@@ -560,7 +556,7 @@ describe("notes", () => {
     let note;
 
     beforeEach(async () => {
-      ({ note } = await createNote());
+      ({ note } = await createTestNote(token, team._id));
     });
 
     test("update note body", async () => {
@@ -626,7 +622,7 @@ describe("notes", () => {
     let note;
 
     beforeEach(async () => {
-      ({ note } = await createNote());
+      ({ note } = await createTestNote(token, team._id));
     });
 
     const deleteNoteMutation = ({ noteId, token }) => {
