@@ -158,8 +158,11 @@ const resolvers = {
     },
   },
   User: {
-    async teams(user, args, { dataSources: { teams } }) {
+    async teams(user, { _id }, { dataSources: { teams } }) {
       // await necessary to avoid querying twice due to apollo's implementation
+      if (_id) {
+        return await teams.findByUserId(user._id, { _id });
+      }
       return await teams.findByUserId(user._id);
     },
   },

@@ -48,7 +48,7 @@ const typeDefs = gql`
     username: String!
     email: String!
     lastLogin: Date!
-    teams: [Team]
+    teams(_id: ID): [Team]
   }
 
   type Team {

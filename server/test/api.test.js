@@ -54,6 +54,9 @@ const testTeamInput = {
   members: ["Jerry", "Elaine"],
 };
 
+/**
+ * Returns a new test user and token.
+ */
 const createTestUser = async (userInput = testUserInput) => {
   const query = `mutation createUser($userInput: UserInput!) {
     createUser(userInput: $userInput) {
@@ -73,7 +76,7 @@ const createTestUser = async (userInput = testUserInput) => {
   return response.body.data.createUser;
 };
 
-const createTestTeam = async (token) => {
+const createTestTeam = async (token, teamInput = testTeamInput) => {
   const query = `mutation createTeam($teamInput: TeamInput!) {
     createTeam(teamInput: $teamInput) {
       success
@@ -84,7 +87,7 @@ const createTestTeam = async (token) => {
       }
     }
   }`;
-  const variables = { teamInput: testTeamInput };
+  const variables = { teamInput };
   const response = await gqlRequest({ query, variables, token });
   expectNoGqlErrors(response);
   return response.body.data.createTeam;
@@ -714,6 +717,24 @@ describe("me query", () => {
     });
   });
 
-  test.todo("find team by id");
+  test("find team by id", async () => {
+    // create a second team which will be used to test the _id param on me.teams
+    const { team } = await createTestTeam(token, { name: "The Double Dippers" });
+    const query = `query findTeam($teamId: ID!) {
+      me {
+        teams(_id: $teamId) {
+          _id
+          name
+        }
+      }
+    }`;
+    const variables = { teamId: team._id };
+    const response = await gqlRequest({ query, variables, token });
+    expectNoGqlErrors(response);
+    expect(response.body.data.me).toEqual({
+      teams: [{ _id: team._id, name: "The Double Dippers" }],
+    });
+  });
+
   test.todo("query notes for a team");
 });
