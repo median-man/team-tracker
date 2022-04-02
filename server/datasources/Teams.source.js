@@ -7,6 +7,16 @@ class TeamsSource extends MongoDataSource {
   findByUserId(userId, criteria = {}) {
     return this.model.find({ user: userId, ...criteria });
   }
+
+  /**
+   * Update team with the given teamId.
+   */
+  update(teamId, teamInput) {
+    return this.model.findOneAndUpdate({ _id: teamId }, teamInput, {
+      new: true,
+    });
+  }
+
   addMember({ memberName, teamId, userId }) {
     return this.model.findOneAndUpdate(
       { _id: teamId, user: userId },

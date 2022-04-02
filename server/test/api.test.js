@@ -260,6 +260,30 @@ describe("teams", () => {
       teamId = team._id;
     });
 
+    test("update team name", async () => {
+      const name = "No Soup for You";
+      const query = `
+        mutation updateTeam($teamId: ID!, $teamInput: TeamInput!) {
+          updateTeam(teamId: $teamId, teamInput: $teamInput) {
+            success
+            team {
+              _id
+              name
+            }
+          }
+        }
+      `;
+      const variables = { teamId, teamInput: { name } };
+      const response = await gqlRequest({ query, variables, token });
+      expectNoGqlErrors(response);
+      expect(response.body.data.updateTeam).toEqual({
+        success: true,
+        team: { _id: teamId, name },
+      });
+    });
+
+    test.todo("can only update own team");
+
     describe("add member", () => {
       test("add a member to a team", async () => {
         const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {

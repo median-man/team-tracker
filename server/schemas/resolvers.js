@@ -54,6 +54,18 @@ const resolvers = {
         team: teams.create({ ...teamInput, userId: user._id }),
       };
     },
+    /**
+     * Update team matching the given teamId.
+     */
+    async updateTeam(
+      parent,
+      { teamId, teamInput },
+      { dataSources: { teams } }
+    ) {
+      const team = await teams.update(teamId, teamInput);
+      return { success: true, team };
+    },
+
     async addTeamMember(parent, { teamId, memberName }, { user, dataSources }) {
       if (!user) {
         throw new AuthenticationError("Must include a valid token.");

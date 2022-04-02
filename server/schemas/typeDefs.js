@@ -13,6 +13,7 @@ const typeDefs = gql`
     createUser(userInput: UserInput!): AuthResponse
     login(email: String!, password: String!): AuthResponse
     createTeam(teamInput: TeamInput!): TeamUpdateResponse
+    updateTeam(teamId: ID!, teamInput: TeamInput!): TeamUpdateResponse
     addTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
     removeTeamMember(teamId: ID!, memberName: String!): TeamUpdateResponse
     updateApp(teamId: ID!, appInput: AppInput!): TeamUpdateResponse
