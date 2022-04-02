@@ -585,7 +585,7 @@ describe("notes", () => {
       ({ note } = await createNote());
     });
 
-    test("completely removes the note", async () => {
+    const deleteNoteMutation = ({ noteId, token }) => {
       const query = `
         mutation deleteNote($noteId: ID!) {
           deleteNote(noteId: $noteId) {
@@ -595,59 +595,46 @@ describe("notes", () => {
             }
           }
         }`;
-      const variables = { noteId: note._id };
-      const response = await gqlRequest({ query, variables, token });
+      const variables = { noteId };
+      return gqlRequest({ query, variables, token });
+    };
+
+    test("completely removes the note", async () => {
+      const response = await deleteNoteMutation({ noteId: note._id, token });
       expectNoGqlErrors(response);
       expect(response.body.data.deleteNote).toEqual({
         success: true,
-        note: null
+        note: null,
       });
       // assert that Note removed from the db
       expect(await Note.findById(note._id)).toBeNull();
     });
 
     test("responds with success: false when no note is found", async () => {
-      const query = `
-        mutation deleteNote($noteId: ID!) {
-          deleteNote(noteId: $noteId) {
-            success
-            note {
-              _id
-            }
-          }
-        }`;
-      const variables = { noteId: "000000000000000000000000" };
-      const response = await gqlRequest({ query, variables, token });
+      const response = await deleteNoteMutation({
+        noteId: "000000000000000000000000",
+        token,
+      });
       expectNoGqlErrors(response);
       expect(response.body.data.deleteNote).toEqual({
         success: false,
-        note: null
+        note: null,
       });
     });
 
     test("can only delete own notes", async () => {
+      // create a second user who will attempt to delete testUser's note
       ({ token } = await createTestUser({
         username: "other",
         email: "other@email.com",
         password: "P@ssword1",
       }));
-      const query = `
-        mutation deleteNote($noteId: ID!) {
-          deleteNote(noteId: $noteId) {
-            success
-            note {
-              _id
-            }
-          }
-        }`;
-      const variables = { noteId: note._id };
-      const response = await gqlRequest({ query, variables, token });
+      const response = await deleteNoteMutation({ noteId: note._id, token });
       expectNoGqlErrors(response);
       expect(response.body.data.deleteNote).toEqual({
         success: false,
-        note: null
+        note: null,
       });
-
     });
   });
 });
