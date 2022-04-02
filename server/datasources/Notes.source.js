@@ -17,6 +17,13 @@ class NotesSource extends MongoDataSource {
   }
 
   /**
+   * Find all notes for a given teamId.
+   */
+  async findByTeamId(teamId) {
+    return this.model.find({ team: teamId });
+  }
+
+  /**
    * Update a note and return a promise which resolved the updated note.
    */
   updateNote({ noteId, userId }, noteData) {

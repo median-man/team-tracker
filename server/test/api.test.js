@@ -545,7 +545,11 @@ describe("notes", () => {
         email: "user2@email.com",
         password: "P@ssword123",
       });
-      const createNoteResult = await createTestNote(token, team._id, testNoteInput);
+      const createNoteResult = await createTestNote(
+        token,
+        team._id,
+        testNoteInput
+      );
       expect(createNoteResult).toMatchObject({
         success: false,
       });
@@ -681,10 +685,11 @@ describe("notes", () => {
 
 describe("me query", () => {
   let token;
+  let team;
   beforeEach(async () => {
     ({ token } = await createTestUser());
     expect(token).not.toBeNull();
-    await createTestTeam(token);
+    ({ team } = await createTestTeam(token));
   });
 
   it("should return user data", async () => {
@@ -715,7 +720,9 @@ describe("me query", () => {
 
   test("find team by id", async () => {
     // create a second team which will be used to test the _id param on me.teams
-    const { team } = await createTestTeam(token, { name: "The Double Dippers" });
+    const { team } = await createTestTeam(token, {
+      name: "The Double Dippers",
+    });
     const query = `query findTeam($teamId: ID!) {
       me {
         teams(_id: $teamId) {
@@ -732,5 +739,23 @@ describe("me query", () => {
     });
   });
 
-  test.todo("query notes for a team");
+  test("query notes for a team", async () => {
+    const { note } = await createTestNote(token, team._id);
+    const query = `query findTeamNotes($teamId: ID!) {
+      me {
+        teams(_id: $teamId) {
+          notes {
+            _id
+            body
+          }
+        }
+      }
+    }`;
+    const variables = { teamId: team._id };
+    const response = await gqlRequest({ query, variables, token });
+    expectNoGqlErrors(response);
+    expect(response.body.data.me).toEqual({
+      teams: [{ notes: [note] }],
+    });
+  });
 });

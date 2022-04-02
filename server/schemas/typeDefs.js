@@ -56,6 +56,7 @@ const typeDefs = gql`
     name: String!
     app: App
     members: [String]
+    notes: [Note]
   }
 
   type App {

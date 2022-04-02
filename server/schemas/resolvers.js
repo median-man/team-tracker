@@ -166,6 +166,11 @@ const resolvers = {
       return await teams.findByUserId(user._id);
     },
   },
+  Team: {
+    async notes(team, args, { dataSources: { notes } }) {
+      return notes.findByTeamId(team._id);
+    },
+  },
 };
 
 module.exports = resolvers;
