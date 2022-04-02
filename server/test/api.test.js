@@ -713,4 +713,7 @@ describe("me query", () => {
       teams: [testTeamInput],
     });
   });
+
+  test.todo("find team by id");
+  test.todo("query notes for a team");
 });
