@@ -590,13 +590,17 @@ describe("notes", () => {
         mutation deleteNote($noteId: ID!) {
           deleteNote(noteId: $noteId) {
             success
+            note {
+              _id
+            }
           }
         }`;
       const variables = { noteId: note._id };
       const response = await gqlRequest({ query, variables, token });
       expectNoGqlErrors(response);
-      expect(response.body.data.deleteNote).toMatchObject({
+      expect(response.body.data.deleteNote).toEqual({
         success: true,
+        note: null
       });
       // assert that Note removed from the db
       expect(await Note.findById(note._id)).toBeNull();
@@ -607,13 +611,17 @@ describe("notes", () => {
         mutation deleteNote($noteId: ID!) {
           deleteNote(noteId: $noteId) {
             success
+            note {
+              _id
+            }
           }
         }`;
       const variables = { noteId: "000000000000000000000000" };
       const response = await gqlRequest({ query, variables, token });
       expectNoGqlErrors(response);
-      expect(response.body.data.deleteNote).toMatchObject({
+      expect(response.body.data.deleteNote).toEqual({
         success: false,
+        note: null
       });
     });
 
@@ -627,6 +635,9 @@ describe("notes", () => {
         mutation deleteNote($noteId: ID!) {
           deleteNote(noteId: $noteId) {
             success
+            note {
+              _id
+            }
           }
         }`;
       const variables = { noteId: note._id };
@@ -634,6 +645,7 @@ describe("notes", () => {
       expectNoGqlErrors(response);
       expect(response.body.data.deleteNote).toEqual({
         success: false,
+        note: null
       });
 
     });
