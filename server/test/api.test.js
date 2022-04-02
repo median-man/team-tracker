@@ -672,8 +672,4 @@ describe("me query", () => {
       teams: [testTeamInput],
     });
   });
-
-  test.todo("should return all my teams");
-  test.todo("should return a team given an optional teamId param");
-  test.todo("should return the notes for a given teamId");
 });
