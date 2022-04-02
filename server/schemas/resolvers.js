@@ -134,10 +134,10 @@ const resolvers = {
       return { success: false };
     },
     /**
-     * Deletes the note for the given noteId.
+     * Deletes the note for the given noteId if it belongs to the authenticated user.
      */
-    async deleteNote(parent, { noteId }, { dataSources: { notes } }) {
-      const deleteCount = await notes.delete({ noteId });
+    async deleteNote(parent, { noteId }, { user, dataSources: { notes } }) {
+      const deleteCount = await notes.delete({ noteId, userId: user._id });
       return { success: deleteCount === 1 };
     },
   },

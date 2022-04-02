@@ -28,12 +28,12 @@ class NotesSource extends MongoDataSource {
   }
 
   /**
-   * Delete a note for given noteId.
+   * Delete a note for given noteId and userId.
    *
    * Returns a promise which resolves 1 if note is deleted and 0 if no matching note is found.
    */
-  async delete({ noteId }) {
-    const result = await this.model.deleteOne({ _id: noteId });
+  async delete({ noteId, userId }) {
+    const result = await this.model.deleteOne({ _id: noteId, user: userId });
     return result.deletedCount;
   }
 }

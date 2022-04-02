@@ -617,7 +617,26 @@ describe("notes", () => {
       });
     });
 
-    test.todo("can only delete own notes");
+    test("can only delete own notes", async () => {
+      ({ token } = await createTestUser({
+        username: "other",
+        email: "other@email.com",
+        password: "P@ssword1",
+      }));
+      const query = `
+        mutation deleteNote($noteId: ID!) {
+          deleteNote(noteId: $noteId) {
+            success
+          }
+        }`;
+      const variables = { noteId: note._id };
+      const response = await gqlRequest({ query, variables, token });
+      expectNoGqlErrors(response);
+      expect(response.body.data.deleteNote).toEqual({
+        success: false,
+      });
+
+    });
   });
 });
 
