@@ -68,7 +68,6 @@ const typeDefs = gql`
   type Note {
     _id: ID!
     body: String!
-    team: Team!
   }
 
   # Mutation Response Types
