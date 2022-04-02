@@ -26,6 +26,16 @@ class NotesSource extends MongoDataSource {
       { new: true }
     );
   }
+
+  /**
+   * Delete a note for given noteId.
+   *
+   * Returns a promise which resolves 1 if note is deleted and 0 if no matching note is found.
+   */
+  async delete({ noteId }) {
+    const result = await this.model.deleteOne({ _id: noteId });
+    return result.deletedCount;
+  }
 }
 
 module.exports = NotesSource;

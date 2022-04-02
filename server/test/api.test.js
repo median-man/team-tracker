@@ -4,7 +4,7 @@ const { startServer } = require("../server");
 const db = require("../config/connection");
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
-const { User, Team } = require("../models");
+const { Note } = require("../models");
 
 let app, httpServer;
 beforeAll(async () => {
@@ -579,7 +579,44 @@ describe("notes", () => {
   });
 
   describe("delete a note", () => {
-    test.todo("completely removes the note");
+    let note;
+
+    beforeEach(async () => {
+      ({ note } = await createNote());
+    });
+
+    test("completely removes the note", async () => {
+      const query = `
+        mutation deleteNote($noteId: ID!) {
+          deleteNote(noteId: $noteId) {
+            success
+          }
+        }`;
+      const variables = { noteId: note._id };
+      const response = await gqlRequest({ query, variables, token });
+      expectNoGqlErrors(response);
+      expect(response.body.data.deleteNote).toMatchObject({
+        success: true,
+      });
+      // assert that Note removed from the db
+      expect(await Note.findById(note._id)).toBeNull();
+    });
+
+    test("responds with success: false when no note is found", async () => {
+      const query = `
+        mutation deleteNote($noteId: ID!) {
+          deleteNote(noteId: $noteId) {
+            success
+          }
+        }`;
+      const variables = { noteId: "000000000000000000000000" };
+      const response = await gqlRequest({ query, variables, token });
+      expectNoGqlErrors(response);
+      expect(response.body.data.deleteNote).toMatchObject({
+        success: false,
+      });
+    });
+
     test.todo("can only delete own notes");
   });
 });

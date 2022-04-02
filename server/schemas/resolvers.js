@@ -133,6 +133,13 @@ const resolvers = {
       }
       return { success: false };
     },
+    /**
+     * Deletes the note for the given noteId.
+     */
+    async deleteNote(parent, { noteId }, { dataSources: { notes } }) {
+      const deleteCount = await notes.delete({ noteId });
+      return { success: deleteCount === 1 };
+    },
   },
   User: {
     async teams(user, args, { dataSources: { teams } }) {
