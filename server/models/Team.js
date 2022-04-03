@@ -43,7 +43,7 @@ const teamSchema = new Schema(
       },
       links: [{ label: String, url: String }],
     },
-    members: {
+    memberNames: {
       type: [{ type: String, minlength: 1, maxlength: 50 }],
       validate: {
         validator: (v) => v.length < 6,
@@ -63,7 +63,9 @@ teamSchema.virtual("notes", {
 });
 
 teamSchema.methods.addNote = async function addNoteToTeam(noteData) {
-  return mongoose.model("Note").create({ ...noteData, team: this._id, user: this.user });
+  return mongoose
+    .model("Note")
+    .create({ ...noteData, team: this._id, user: this.user });
 };
 
 const Team = model("Team", teamSchema);

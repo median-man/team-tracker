@@ -6,7 +6,7 @@ const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const { Note } = require("../models");
 
-let app, httpServer;
+let httpServer;
 beforeAll(async () => {
   ({ app, httpServer } = await startServer({ port: 0 }));
 });
@@ -51,7 +51,7 @@ const testUserInput = {
 
 const testTeamInput = {
   name: "Test Team",
-  members: ["Jerry", "Elaine"],
+  memberNames: ["Jerry", "Elaine"],
 };
 
 const testNoteInput = {
@@ -87,7 +87,7 @@ const createTestTeam = async (token, teamInput = testTeamInput) => {
       team {
         _id
         name
-        members
+        memberNames
       }
     }
   }`;
@@ -256,7 +256,6 @@ describe("login mutation", () => {
 
 describe("teams", () => {
   let token;
-  let user;
   beforeEach(async () => {
     ({ token, user } = await createTestUser());
     expect(token).not.toBeNull();
@@ -268,8 +267,8 @@ describe("teams", () => {
       success: true,
       team: {
         _id: expect.any(String),
-        name: "Test Team",
-        members: ["Jerry", "Elaine"],
+        name: testTeamInput.name,
+        memberNames: testTeamInput.memberNames,
       },
     });
   });
@@ -332,23 +331,24 @@ describe("teams", () => {
 
     describe("add member", () => {
       test("add a member to a team", async () => {
+        const memberName = "Kramer";
         const query = `mutation addTeamMember($teamId: ID!, $memberName: String!) {
             addTeamMember(teamId: $teamId, memberName: $memberName) {
               success
               team {
                 _id
-                members
+                memberNames
               }
             }
           }`;
-        const variables = { teamId, memberName: "Kramer" };
+        const variables = { teamId, memberName };
         const response = await gqlRequest({ query, variables, token });
         expectNoGqlErrors(response);
         expect(response.body.data.addTeamMember).toMatchObject({
           success: true,
           team: {
             _id: teamId,
-            members: expect.arrayContaining(["Kramer"]),
+            memberNames: expect.arrayContaining([memberName]),
           },
         });
       });
@@ -358,7 +358,6 @@ describe("teams", () => {
           addTeamMember(teamId: $teamId, memberName: $memberName) {
             team {
               _id
-              members
             }
           }
         }`;
@@ -385,7 +384,6 @@ describe("teams", () => {
             success
             team {
               _id
-              members
             }
           }
         }`;
@@ -402,23 +400,24 @@ describe("teams", () => {
 
     describe("remove member", () => {
       test("remove member from a team", async () => {
+        const memberName = "Elaine";
         const query = `mutation removeTeamMember($teamId: ID!, $memberName: String!) {
           removeTeamMember(teamId: $teamId, memberName: $memberName) {
             success
             team {
               _id
-              members
+              memberNames
             }
           }
         }`;
-        const variables = { teamId, memberName: "Elaine" };
+        const variables = { teamId, memberName };
         const response = await gqlRequest({ query, variables, token });
         expectNoGqlErrors(response);
         expect(response.body.data.removeTeamMember).toMatchObject({
           success: true,
           team: {
             _id: teamId,
-            members: expect.not.arrayContaining(["Elaine"]),
+            memberNames: expect.not.arrayContaining([memberName]),
           },
         });
       });
@@ -434,7 +433,6 @@ describe("teams", () => {
             success
             team {
               _id
-              members
             }
           }
         }`;
@@ -700,7 +698,6 @@ describe("me query", () => {
         username
         teams {
           name
-          members
         }
       }
     }`;
@@ -714,7 +711,7 @@ describe("me query", () => {
       _id: expect.any(String),
       username: testUserInput.username,
       email: testUserInput.email,
-      teams: [testTeamInput],
+      teams: [{ name: testTeamInput.name }],
     });
   });
 

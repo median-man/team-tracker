@@ -31,6 +31,7 @@ const typeDefs = gql`
   input TeamInput {
     name: String
     members: [String]
+    memberNames: [String]
   }
 
   input AppInput {
@@ -55,7 +56,7 @@ const typeDefs = gql`
     _id: ID!
     name: String!
     app: App
-    members: [String]
+    memberNames: [String]
     notes: [Note]
   }
 
