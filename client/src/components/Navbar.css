@@ -6,7 +6,7 @@
   --border: 1px solid #444;
 
   display: block;
-  width: 4em;
+  /* width: 4em; */
   padding: 0.25em;
   text-align: center;
   text-decoration: none;
