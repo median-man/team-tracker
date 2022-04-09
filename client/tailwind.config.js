@@ -10,7 +10,11 @@ module.exports = {
       red: colors.red,
       gray: colors.neutral,
     },
-    extend: {},
+    extend: {
+      transitionDuration: {
+        DEFAULT: "200ms",
+      },
+    },
   },
   plugins: [],
 };
