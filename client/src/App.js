@@ -14,33 +14,31 @@ function App() {
     <ApolloProvider client={client}>
       <Router>
         <AuthProvider>
-          <div className="block md:flex min-h-screen">
+          <div className="flex flex-col justify-items-stretch md:flex-row min-h-screen">
             <div className="md:w-48 md:min-h-full">
               <Navbar />
             </div>
-            <div>
-              <Routes>
-                <Route path="/" element={<About />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/teams/add" element={<AddTeam />} />
-                <Route path="/teams/1" element={<Team />} />
-                <Route path="/teams/1/members" element={<Members />} />
-                <Route path="/teams/1/notes/add" element={<AddNote />} />
+            <Routes>
+              <Route path="/" element={<About />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/teams/add" element={<AddTeam />} />
+              <Route path="/teams/1" element={<Team />} />
+              <Route path="/teams/1/members" element={<Members />} />
+              <Route path="/teams/1/notes/add" element={<AddNote />} />
 
-                {/* Use <RequiredAuth> for pages that should only be accessible to a
-            user that has logged in.*/}
-                <Route
-                  path="/protected"
-                  element={
-                    <RequireAuth>
-                      <ProtectedPageExample />
-                    </RequireAuth>
-                  }
-                />
-              </Routes>
-            </div>
+              {/* Use <RequiredAuth> for pages that should only be accessible to a
+                    user that has logged in.*/}
+              <Route
+                path="/protected"
+                element={
+                  <RequireAuth>
+                    <ProtectedPageExample />
+                  </RequireAuth>
+                }
+              />
+            </Routes>
           </div>
         </AuthProvider>
       </Router>
