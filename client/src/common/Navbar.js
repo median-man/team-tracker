@@ -6,13 +6,21 @@ import { Collapse } from "./Collapse";
 import { useBreakpoint } from "../util/useBreakpoint";
 
 // Classes shared by buttons and links in the navigation menu
-const navItemClasses =
-  "hover:bg-blue-400 focus:bg-blue-400 focus:outline-none px-4 py-1 active:bg-blue-300 transition-color";
+const navItemClasses = ({ isActive } = {}) => {
+  const common =
+    "px-4 py-1 focus:outline-none transition-color w-full text-left";
+  return (
+    common +
+    (isActive
+      ? " bg-blue-300 text-gray-800"
+      : " hover:bg-blue-400 focus:bg-blue-400 active:bg-blue-300")
+  );
+};
 
 function LogoutButton() {
   const { logout } = useAuth();
   return (
-    <button className={`${navItemClasses} w-full text-left`} onClick={logout}>
+    <button className={navItemClasses()} onClick={logout}>
       Logout
     </button>
   );
@@ -22,13 +30,13 @@ export default function Navbar() {
   const { isLoggedIn } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen((isMenuOpen) => !isMenuOpen);
-  
+
   // open menu when screen is wider than md breakpoint and close menu when
   // screen is resized smaller than md breakpoint
   const keepMenuOpen = useBreakpoint("md");
   useEffect(() => {
     if (keepMenuOpen) {
-      setIsMenuOpen(true)
+      setIsMenuOpen(true);
     } else {
       setIsMenuOpen(false);
     }
@@ -44,7 +52,7 @@ export default function Navbar() {
       >
         <MenuIcon />
       </button>
-      <Collapse className="w-full" open={isMenuOpen} breakpoint="md">
+      <Collapse className="w-full" open={isMenuOpen}>
         <nav className={`flex flex-col pb-4`}>
           {isLoggedIn ? (
             <>
