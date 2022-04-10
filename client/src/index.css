@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+  Animation Delay Utility
+
+  Not using @layer directive or adding these as a plugin because CRA doesn't
+  seem to work with them when added to the css or config respectively.
+*/
+.animate-delay-0 {
+  animation-delay: 0s;
+}
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+.animate-delay-600 {
+  animation-delay: 600ms;
+}
